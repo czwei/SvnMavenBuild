@@ -18,13 +18,8 @@ import java.util.List;
  */
 public class SvnToolWindow {
     private JPanel panel;
-    private JLabel isMvnPke;
-    private JRadioButton isMvnRadioButton;
     private JTable table;
     private JScrollPane scrollPane;
-    private JRadioButton isMvnRadioButtonNo;
-    private JRadioButton classesRadioButton;
-    private JRadioButton warRadioButton;
 
     MyDefaultTableModel dataModel = new MyDefaultTableModel();
 
@@ -52,11 +47,7 @@ public class SvnToolWindow {
         }
 
         MyThreadPoolExecutor.INSTANCE.getThreadPoolExecutor().submit(() -> {
-            if(warRadioButton.isSelected()) {
-                ChoiceActionService.backEndWar(project, dataContext, list, isMvnRadioButton.isSelected());
-            }else {
-                ChoiceActionService.backEndClasses(project, dataContext, list);
-            }
+            ChoiceActionService.backEndClasses(project, dataContext, list);
         });
 
         NotifyUtil.notifyInfo(project, "开始在异步打包,请稍后,打包完成后提示！");
@@ -82,15 +73,6 @@ public class SvnToolWindow {
         column.setPreferredWidth(120);
         column.setMaxWidth(120);
         column.setMinWidth(120);
-
-        // 默认选中从 classes 中获取
-        classesRadioButton.setSelected(true);
-
-        // 默认不选中maven打包
-        isMvnRadioButtonNo.setSelected(true);
-
-        // 默认选中不按文件夹打包
-//        packButtonNo.setSelected(true);
     }
 
     public JPanel getContent() {

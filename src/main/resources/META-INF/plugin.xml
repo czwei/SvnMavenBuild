@@ -14,18 +14,18 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-        <p>Generate incremental WAR/Class update packages based on SVN commit history using Maven. Supports both WAR mode (mvn package then extract) and Classes mode (copy directly from target/classes). Inner classes (Foo$Bar.class) are automatically included.</p>
-        <p>基于 SVN 提交记录，使用 Maven 增量打包 WAR/Class 更新包。支持 WAR 模式和 Classes 模式，自动包含内部类文件。</p>
+        <p>Generate incremental Class update packages based on SVN commit history. Copies compiled .class files from target/classes/ to target/dist/, with inner classes (Foo$Bar.class) automatically included.</p>
+        <p>基于 SVN 提交记录，从 target/classes/ 目录生成增量 class 更新包，自动包含内部类文件。</p>
         <br>
         <h3>Requirements / 依赖</h3>
         <ul>
             <li>SVN must be installed and configured in PATH</li>
-            <li>Maven must be installed and configured in PATH</li>
+            <li>Project must be compiled before use (mvn compile or IDE Build)</li>
         </ul>
         <h3>Usage / 使用方法</h3>
         <ul>
             <li>Right-click project → Subversion → Show History → select revisions → Svn Maven build</li>
-            <li>Select files and packaging mode (WAR / Classes) in the dialog, then click OK</li>
+            <li>Select files in the dialog, then click OK</li>
             <li>The update package will be generated under target/dist/</li>
         </ul>
   ]]></description>
@@ -37,7 +37,8 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup id="Svn Maven Build" displayType="BALLOON" key="notification.group.name"/>
+        <notificationGroup id="Subversion Maven Increment" displayType="BALLOON" key="notification.group.name"/>
+        <postStartupActivity implementation="com.example.subversionMavenIncrement.SvnRepositoriesActionRegister"/>
     </extensions>
 
     <!-- action配置，按钮展示在哪里需要在这配置 -->

@@ -21,13 +21,10 @@ dependencies {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2023.1")
+    version.set("2024.1")
     type.set("IC") // Target IDE Platform
 
     plugins.set(listOf())
-    
-    // 禁用版本检查以避免网络问题
-    updateSinceUntilBuild.set(false)
 }
 
 tasks {
@@ -39,8 +36,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("231")
-        untilBuild.set("263.*")
+        sinceBuild.set("241")
+        untilBuild.set("261.*")
     }
 
     signPlugin {
@@ -52,14 +49,6 @@ tasks {
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
     }
-    
-    // 禁用插件版本检查
-    prepareSandbox {
-        dependsOn(jar)
-    }
+
 }
 
-// 配置系统属性以跳过版本检查
-tasks.withType<org.jetbrains.intellij.tasks.RunIdeTask> {
-    systemProperty("idea.plugins.path", "${project.buildDir}/idea-sandbox/plugins")
-}
