@@ -8,7 +8,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.apache.commons.lang.StringUtils;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class ChoiceAction extends AnAction {
         // 先初始化数据
         CheckUpService.init(project, dataContext);
 
-        if(StringUtils.isNotEmpty(CheckUpService.RESOLVE_ADDRESS)) {
+        if(CheckUpService.RESOLVE_ADDRESS != null && !CheckUpService.RESOLVE_ADDRESS.isEmpty()) {
             try {
                 SvnFormDialog svnFormDialog = new SvnFormDialog(project, dataContext);
                 //是否允许用户通过拖拽的方式扩大或缩小你的表单框，我这里定义为true，表示允许

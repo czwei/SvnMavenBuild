@@ -6,7 +6,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vcs.vfs.VcsVirtualFolder;
-import org.apache.commons.lang.StringUtils;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -59,7 +59,7 @@ public class CheckUpService {
         }
 
         // 读取完 svnMavenIncrement.xml 还是null 就解析项目结构
-        if(StringUtils.isNotEmpty(RESOLVE_ADDRESS)) {
+        if(RESOLVE_ADDRESS != null && !RESOLVE_ADDRESS.isEmpty()) {
             return;
         }
 
