@@ -28,9 +28,30 @@ public class ExecuteCommand {
     private static final String HEADER_C;
 
     /**
-     * 获取系统编码格式
+     * 获取系统原生编码格式
+     * JDK 18+ 使用 native.encoding 获取操作系统原生编码（JEP 400）
+     * 低版本 JDK 回退到 sun.jnu.encoding
      */
-    public static final String CHARSET = System.getProperty("sun.jnu.encoding");
+    public static final String CHARSET = getNativeCharset();
+
+    /**
+     * 获取操作系统原生编码
+     * 优先使用 native.encoding（JDK 18+），
+     * 解决 sun.jnu.encoding 在新版 JDK 中返回 UTF-8 导致 Windows 中文环境 SVN 输出乱码的问题
+     */
+    private static String getNativeCharset() {
+        // JDK 18+ 提供的原生编码属性，能准确反映操作系统编码
+        String nativeEncoding = System.getProperty("native.encoding");
+        if (nativeEncoding != null && !nativeEncoding.isEmpty()) {
+            return nativeEncoding;
+        }
+        // 旧版 JDK 回退
+        String jnuEncoding = System.getProperty("sun.jnu.encoding");
+        if (jnuEncoding != null && !jnuEncoding.isEmpty()) {
+            return jnuEncoding;
+        }
+        return "UTF-8";
+    }
 
     static {
 
@@ -91,7 +112,7 @@ public class ExecuteCommand {
             int num = 0;
             try {
                 while((num=ins.read(b))!=-1){
-                    System.out.println(new String(b,"gb2312"));
+                    System.out.println(new String(b, 0, num, CHARSET));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
