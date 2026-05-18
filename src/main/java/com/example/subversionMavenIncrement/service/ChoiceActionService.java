@@ -5,6 +5,8 @@ import com.example.subversionMavenIncrement.ui.FailPathFormDialog;
 import com.example.subversionMavenIncrement.util.FileUtil;
 import com.example.subversionMavenIncrement.util.NotifyUtil;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vcs.history.VcsFileRevision;
@@ -70,7 +72,7 @@ public class ChoiceActionService {
      * @param dataContext
      * @param svnSubmitData
      */
-    public static void backEndClasses(Project project, DataContext dataContext, List<String> svnSubmitData) {
+    public static void backEndClasses(Project project, DataContext dataContext, List<String> svnSubmitData, ProgressIndicator indicator) {
 
         // 先创建临时时文件夹
         String temporaryFile = CheckUpService.RESOLVE_ADDRESS + File.separator + "target";
@@ -89,9 +91,21 @@ public class ChoiceActionService {
         // 打包失败的文件路径
         List<String> failPaths = new ArrayList<>();
 
+        // 初始化进度条
+        indicator.setIndeterminate(false);
+        int total = svnSubmitData.size();
+        int index = 0;
+
         try {
             // 只移动 resources 和 src
             for (String path : svnSubmitData) {
+
+                // 检查用户是否取消
+                indicator.checkCanceled();
+
+                // 更新进度
+                indicator.setFraction((double) index / total);
+                indicator.setText("处理中(" + (index + 1) + "/" + total + "): " + path);
 
                 for (String fold : PACKAGING_FOLDER) {
                     String[] paths = path.split(fold);
@@ -100,7 +114,7 @@ public class ChoiceActionService {
                         continue;
                     }
 
-                    if (path.contains(fold) && path.contains(".")) {
+                    if (paths.length > 1 && path.contains(fold) && path.contains(".")) {
 
                         paths[1] = paths[1].replace(".java", ".class");
                         processingSvnPath(fold, paths);
@@ -122,9 +136,17 @@ public class ChoiceActionService {
                         }
                     }
                 }
+
+                index++;
             }
 
+            // 完成时将进度设为100%
+            indicator.setFraction(1.0);
+            indicator.setText("打包完成，正在生成结果...");
+
             packagingComp(project, dist, failPaths);
+        } catch (ProcessCanceledException e) {
+            // 用户取消打包，不弹窗提示
         } catch (IOException e) {
             NotifyUtil.notifyError(project, "生成更新包失败！请查看 " + temporaryFile + CLASSES + " 文件夹是否有文件" + Messages.getInformationIcon());
             throw new RuntimeException(e);

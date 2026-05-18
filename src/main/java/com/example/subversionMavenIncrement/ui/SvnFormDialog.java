@@ -1,13 +1,12 @@
 package com.example.subversionMavenIncrement.ui;
 
-import com.example.subversionMavenIncrement.service.ChoiceActionService;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.IOException;
+import java.util.List;
 
 /**
  * 表单弹出框
@@ -18,10 +17,10 @@ public class SvnFormDialog extends DialogWrapper {
 
     private final SvnToolWindow svnToolWindow = new SvnToolWindow();
 
-    public SvnFormDialog(@Nullable Project project, DataContext dataContext) throws IOException, InterruptedException {
+    public SvnFormDialog(@Nullable Project project, List<String> svnNotes, DataContext dataContext) {
         super(true);
 
-        svnToolWindow.currentDateTime(ChoiceActionService.findSvnNotes(dataContext), project, dataContext);
+        svnToolWindow.currentDateTime(svnNotes, project, dataContext);
 
         //设置会话框标题
         setTitle("Select Svn Data");

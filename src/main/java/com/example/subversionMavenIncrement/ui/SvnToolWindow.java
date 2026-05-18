@@ -1,9 +1,10 @@
 package com.example.subversionMavenIncrement.ui;
 
-import com.example.subversionMavenIncrement.run.MyThreadPoolExecutor;
 import com.example.subversionMavenIncrement.service.ChoiceActionService;
-import com.example.subversionMavenIncrement.util.NotifyUtil;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
@@ -46,11 +47,16 @@ public class SvnToolWindow {
             }
         }
 
-        MyThreadPoolExecutor.INSTANCE.getThreadPoolExecutor().submit(() -> {
-            ChoiceActionService.backEndClasses(project, dataContext, list);
+        // 使用 IntelliJ 原生进度条，支持取消
+        // 使用 invokeLater 延迟调度，确保模态对话框完全关闭后再显示进度条
+        ApplicationManager.getApplication().invokeLater(() -> {
+            new Task.Backgroundable(project, "生成增量更新包", true) {
+                @Override
+                public void run(ProgressIndicator indicator) {
+                    ChoiceActionService.backEndClasses(project, dataContext, list, indicator);
+                }
+            }.queue();
         });
-
-        NotifyUtil.notifyInfo(project, "开始在异步打包,请稍后,打包完成后提示！");
     }
 
     /**

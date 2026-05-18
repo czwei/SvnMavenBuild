@@ -38,7 +38,6 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="Subversion Maven Increment" displayType="BALLOON" key="notification.group.name"/>
-        <postStartupActivity implementation="com.example.subversionMavenIncrement.SvnRepositoriesActionRegister"/>
     </extensions>
 
     <!-- action配置，按钮展示在哪里需要在这配置 -->
