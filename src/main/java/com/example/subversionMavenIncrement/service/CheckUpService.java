@@ -5,7 +5,7 @@ import com.example.subversionMavenIncrement.util.NotifyUtil;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vcs.vfs.VcsVirtualFolder;
+import com.intellij.openapi.vfs.VirtualFile;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -40,8 +40,8 @@ public class CheckUpService {
 
         RESOLVE_ADDRESS = null;
 
-        VcsVirtualFolder filePathOn = (VcsVirtualFolder) com.intellij.openapi.vcs.VcsDataKeys.VCS_VIRTUAL_FILE.getData(dataContext);
-        String vcsPath = filePathOn.getPath();
+        VirtualFile virtualFile = (VirtualFile) com.intellij.openapi.vcs.VcsDataKeys.VCS_VIRTUAL_FILE.getData(dataContext);
+        String vcsPath = virtualFile.getPath();
 
         // VCS_VIRTUAL_FILE 可能指向子目录（如 src/），向上查找真正的模块根目录
         String moduleRoot = resolveModuleRoot(vcsPath);
