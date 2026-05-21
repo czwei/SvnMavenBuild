@@ -7,16 +7,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.List;
 
 /**
  * 开始检查 Maven 是否是多模块
@@ -109,15 +112,17 @@ public class CheckUpService {
      */
     private void getXml(File xml) {
         try {
-            SAXReader reader = new SAXReader();
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
             // 加载xml文件
-            Document dc= reader.read(xml);
+            Document dc = builder.parse(xml);
 
             // 获取根节点
-            Element e = dc.getRootElement();
+            Element e = dc.getDocumentElement();
             // 读取 resolve_address - path
-            Element path = e.element("resolve_address").element("path");
-            RESOLVE_ADDRESS = path.getText();
+            Element resolveAddress = (Element) e.getElementsByTagName("resolve_address").item(0);
+            Element path = (Element) resolveAddress.getElementsByTagName("path").item(0);
+            RESOLVE_ADDRESS = path.getTextContent();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -137,19 +142,19 @@ public class CheckUpService {
             return false;
         }
 
-        SAXReader reader = new SAXReader();
-
         try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
             // 加载xml文件
-            Document dc= reader.read(pomFile);
+            Document dc = builder.parse(pomFile);
 
             // 获取根节点
-            Element e = dc.getRootElement();
+            Element e = dc.getDocumentElement();
 
             // 遍历根元素下的所有子元素
-            List<Element> eList = e.elements("modules");
+            NodeList nodeList = e.getElementsByTagName("modules");
 
-            return eList.size() > 0;
+            return nodeList.getLength() > 0;
 
         }catch (Exception e){
             NotifyUtil.notifyError(project, "出错了！获取pom.xml出错" + Messages.getInformationIcon());
@@ -196,22 +201,22 @@ public class CheckUpService {
      */
     public void createXml(String filePath, String pathText){
         try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
             // 创建document对象
-            Document document = DocumentHelper.createDocument();
-            // 创建根节点StudentRoot
-            Element studentRoot = document.addElement("project");
-            // 向根节点中添加第一个子节点student
-            Element student = studentRoot.addElement("resolve_address");
+            Document document = builder.newDocument();
+            // 创建根节点
+            Element projectRoot = document.createElement("project");
+            document.appendChild(projectRoot);
+            // 向根节点中添加resolve_address子节点
+            Element resolveAddress = document.createElement("resolve_address");
+            projectRoot.appendChild(resolveAddress);
 
-            // 向student节点中添加子节点name和age
-            Element path = student.addElement("path");
+            // 向resolve_address节点中添加path子节点
+            Element path = document.createElement("path");
             // 向子节点设置文本内容
-            path.setText(pathText);
-
-            // 设置生成xml的格式
-            OutputFormat format = OutputFormat.createPrettyPrint();
-            // 设置编码格式
-            format.setEncoding("UTF-8");
+            path.setTextContent(pathText);
+            resolveAddress.appendChild(path);
 
             // 生成xml文件
             File file = new File(filePath);
@@ -219,13 +224,16 @@ public class CheckUpService {
                 file.delete();
             }
 
-            // 创建一个xml写入对象
-            XMLWriter writer = new XMLWriter(new FileOutputStream(file), format);
-            // 设置是否转义，默认使用转义字符
-            writer.setEscapeText(false);
-            // 把document对象写入到输出流中
-            writer.write(document);
-            writer.close();
+            // 使用Transformer输出格式化的XML
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+            DOMSource source = new DOMSource(document);
+            StreamResult result = new StreamResult(new FileOutputStream(file));
+            transformer.transform(source, result);
 
         } catch (Exception e) {
             e.printStackTrace();
