@@ -97,7 +97,7 @@ public class ChoiceActionService {
         int index = 0;
 
         try {
-            // 只移动 resources 和 src
+            // 处理 resources、src 子目录以及项目根目录的文件
             for (String path : svnSubmitData) {
 
                 // 检查用户是否取消
@@ -107,6 +107,8 @@ public class ChoiceActionService {
                 indicator.setFraction((double) index / total);
                 indicator.setText("处理中(" + (index + 1) + "/" + total + "): " + path);
 
+                boolean matched = false;
+
                 for (String fold : PACKAGING_FOLDER) {
                     String[] paths = path.split(fold);
 
@@ -114,7 +116,7 @@ public class ChoiceActionService {
                         continue;
                     }
 
-                    if (paths.length > 1 && path.contains(fold) && path.contains(".")) {
+                    if (paths.length > 1 && path.contains(fold)) {
 
                         paths[1] = paths[1].replace(".java", ".class");
                         processingSvnPath(fold, paths);
@@ -134,6 +136,23 @@ public class ChoiceActionService {
                         } catch (Exception e) {
                             failPaths.add(path + " (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
                         }
+
+                        matched = true;
+                    }
+                }
+
+                // 处理项目根目录下的文件（不在 src 或 resources 子目录下，如 version、LICENSE 等）
+                if (!matched) {
+                    String fileName = Path.of(path).getFileName().toString();
+                    try {
+                        Path sourceFile = Path.of(temporaryFile + CLASSES, fileName);
+                        if (Files.exists(sourceFile)) {
+                            Path destFile = Path.of(dist + CLASSES, fileName);
+                            Files.createDirectories(destFile.getParent());
+                            Files.copy(sourceFile, destFile);
+                        }
+                    } catch (Exception e) {
+                        failPaths.add(path + " (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
                     }
                 }
 
